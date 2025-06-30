@@ -1,0 +1,181 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <miniaudio.h>
+
+#define M_PI 3.14159265358979323846
+
+struct Note {
+    float begin_timestamp;
+    float length;
+    uint16_t instrument_index;
+    uint8_t key;
+    uint8_t velocity;
+};
+
+typedef int16_t (*NoteCallback)(const Note *note, float time, float volume);
+
+struct Instrument {
+    float volume;
+    NoteCallback callback;
+};
+
+struct PatternBlueprint {
+    std::vector<Note> notes;
+};
+
+struct Pattern {
+    float begin_timestamp;
+    float length;
+    uint16_t blueprint_index;
+};
+
+struct Track {
+    std::vector<Pattern> patterns;
+};
+
+static std::vector<Track> tracks;
+static std::vector<PatternBlueprint> pattern_blueprints;
+static std::vector<Instrument> instruments;
+
+int16_t sine_wave(const Note* note, float time, float volume)
+{
+    float frequency = 440.0f * pow(2.0f, (note->key - 69) / 12.0f);
+    float sample = sinf(2.0f * M_PI * frequency * time) * volume;
+    return (int16_t)(sample * 32767);
+}
+
+int16_t square_wave(const Note* note, float time, float volume)
+{
+    float frequency = 440.0f * pow(2.0f, (note->key - 69) / 12.0f);
+    float period = 1.0f / frequency;
+    float t_in_period = fmod(time, period);
+    float sample = (t_in_period < period / 2) ? 1.0f : -1.0f;
+    return (int16_t)(sample * volume * 32767);
+}
+
+int16_t triangle_wave(const Note* note, float time, float volume)
+{
+    float frequency = 440.0f * pow(2.0f, (note->key - 69) / 12.0f);
+    float period = 1.0f / frequency;
+    float t_in_period = fmod(time, period);
+    float value = 0.0f;
+
+    if (t_in_period < period / 2) {
+        value = (t_in_period / (period / 2)) * 2.0f - 1.0f;
+    } else {
+        value = 1.0f - ((t_in_period - period / 2) / (period / 2)) * 2.0f;
+    }
+    return (int16_t)(value * volume * 32767);
+}
+
+int16_t noise_wave(const Note*, float, float volume)
+{
+    float sample = ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
+    return (int16_t)(sample * volume * 32767);
+}
+
+int16_t piano_wave(const Note* note, float time, float volume)
+{
+    float frequency = 440.0f * pow(2.0f, (note->key - 69) / 12.0f);
+
+    float env;
+    if (time < 0.01f)
+        env = time / 0.01f;
+    else
+        env = expf(-3.0f * (time - 0.01f));
+
+    env = fmaxf(env, 0.0f);
+
+    float sample = 0.0f;
+    sample += 1.0f * sinf(2.0f * M_PI * frequency * time);
+    sample += 0.5f * sinf(2.0f * M_PI * frequency * 2.0f * time);
+    sample += 0.3f * sinf(2.0f * M_PI * frequency * 3.01f * time);
+    sample += 0.2f * sinf(2.0f * M_PI * frequency * 4.02f * time);
+    sample += 0.1f * sinf(2.0f * M_PI * frequency * 5.03f * time);
+
+    sample *= env * volume;
+
+    if (sample > 1.0f) sample = 1.0f;
+    if (sample < -1.0f) sample = -1.0f;
+
+    return (int16_t)(sample * 32767);
+}
+
+// Main audio rendering
+void render_audio(std::vector<int16_t>& buffer, uint32_t sample_rate) {
+    float duration = 0.0f;
+    for (const auto& track : tracks) {
+        for (const auto& pattern : track.patterns) {
+            if (pattern.begin_timestamp + pattern.length > duration) {
+                duration = pattern.begin_timestamp + pattern.length;
+            }
+        }
+    }
+
+    size_t total_samples = static_cast<size_t>(duration * sample_rate);
+    buffer.resize(total_samples, 0);
+
+    for (const auto& track : tracks) {
+        for (const auto& pattern : track.patterns) {
+            const auto& blueprint = pattern_blueprints[pattern.blueprint_index];
+            for (const auto& note : blueprint.notes) {
+                const Instrument& instr = instruments[note.instrument_index];
+                float note_start = pattern.begin_timestamp + note.begin_timestamp;
+                float note_end = note_start + note.length;
+                size_t start_sample = static_cast<size_t>(note_start * sample_rate);
+                size_t end_sample = static_cast<size_t>(note_end * sample_rate);
+
+                for (size_t i = start_sample; i < end_sample && i < buffer.size(); ++i) {
+                    float t = (float)(i - start_sample) / sample_rate;
+                    int16_t sample = instr.callback(&note, t, instr.volume * (note.velocity / 255.0f));
+                    int32_t mixed = buffer[i] + sample;
+                    if (mixed > 32767) mixed = 32767;
+                    if (mixed < -32768) mixed = -32768;
+                    buffer[i] = static_cast<int16_t>(mixed);
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    Instrument instr = { 0.5f, piano_wave };
+    instruments.push_back(instr);
+
+    Note note = { 0.0f, 4.0f, 0, 69, 100 }; // A4
+    Note note2 = { 0.2f, 4.0f, 0, 72, 100 };
+    Note note3 = { 0.4f, 4.0f, 0, 76, 100 };
+
+    PatternBlueprint blueprint = { { note, note2, note3 } };
+    pattern_blueprints.push_back(blueprint);
+    Note note4 = { 0.4f, 4.0f, 0, 69, 100 }; // A4
+    Note note5 = { 0.2f, 4.0f, 0, 72, 100 };
+    Note note6 = { 0.0f, 4.0f, 0, 76, 100 };
+    PatternBlueprint blueprint2 = { { note4, note5, note6 } };
+    pattern_blueprints.push_back(blueprint2);
+
+    Track track = { { { 1.0f, 1.0f, 0 }, { 2.0f, 1.0f, 0 } } };
+    tracks.push_back(track);
+    track = { { { 0.0f, 1.0f, 1 }, { 1.0f, 1.0f, 1 } } };
+    tracks.push_back(track);
+
+    uint32_t sample_rate = 44100;
+    std::vector<int16_t> audio_buffer;
+    render_audio(audio_buffer, sample_rate);
+
+    // Write to WAV using miniaudio
+    ma_encoder_config config = ma_encoder_config_init(ma_encoding_format_wav, ma_format_s16, 1, sample_rate);
+    ma_encoder encoder;
+    if (ma_encoder_init_file("output.wav", &config, &encoder) != MA_SUCCESS) {
+        std::cerr << "Failed to initialize WAV encoder.\n";
+        return -1;
+    }
+
+    ma_uint64 frames_written;
+    ma_encoder_write_pcm_frames(&encoder, audio_buffer.data(), audio_buffer.size(), &frames_written);
+    ma_encoder_uninit(&encoder);
+
+    std::cout << "WAV file written to output.wav\n";
+    return 0;
+}
