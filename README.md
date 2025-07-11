@@ -14,6 +14,12 @@
 
 ---
 
+## 🧀 Initial Setup
+Choose a directory you want to clone the project to.
+```bash
+git clone --recursive https://github.com/boxDev2008/Uphonic.git
+```
+
 ## 🛠️ Building Uphonic
 
 Currently, Uphonic supports building on **Windows** via simple batch scripts:

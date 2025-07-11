@@ -1,11 +1,11 @@
 workspace "Uphonic"
-    configurations { "Debug", "Release" }
+    configurations { "debug", "release" }
 
 project "Uphonic"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
-    targetdir "bin/%{cfg.buildcfg}"
+    targetdir "bin/%{cfg.buildcfg}/%{cfg.system}"
 
     files { "src/**.h", "src/**.c", "src/**.cpp" }
     includedirs {

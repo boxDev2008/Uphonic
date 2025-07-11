@@ -6,7 +6,6 @@ bin/
 obj/
 
 # Common binary and library files
-*.exe
 *.dll
 *.so
 *.dylib

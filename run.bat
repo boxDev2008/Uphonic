@@ -1,3 +1,3 @@
-cd bin/Release
+cd bin/release/windows
 "Uphonic.exe"
-cd ../..
+cd ../../..
