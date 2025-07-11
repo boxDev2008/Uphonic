@@ -1,13 +1,25 @@
+# Ignore VSCode settings
+.vscode/
+
+# Build output directories
+bin/
 obj/
-bin/*.exe
+tools/
+
+# Common binary and library files
+*.exe
 *.dll
 *.so
 *.dylib
 *.exp
 *.lib
 *.pdb
+
+# Visual Studio files
 *.sln
 *.vcxproj
 *.user
 *.filters
+
+# Build systems
 Makefile
