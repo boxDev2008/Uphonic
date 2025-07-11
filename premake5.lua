@@ -15,11 +15,17 @@ project "Uphonic"
         "src/vendor/imgui",
         "src/vendor/glfw/include"
     }
-
-    links { "opengl32" }
+    
+    -- glfw excludes
+    excludes { "src/vendor/glfw/tests/**.c", "src/vendor/glfw/examples/**.c", "src/vendor/glfw/deps/**.c" }
 
     filter { "system:windows" }
+        links { "opengl32" }
         defines { "_GLFW_WIN32" }
+
+    filter { "system:linux" }
+        links { "GL" }
+        defines { "_GLFW_X11" } -- todo: add Wayland support
 
     filter "configurations:Debug"
         defines { "DEBUG" }

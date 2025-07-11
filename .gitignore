@@ -4,7 +4,6 @@
 # Build output directories
 bin/
 obj/
-tools/
 
 # Common binary and library files
 *.exe
@@ -20,6 +19,11 @@ tools/
 *.vcxproj
 *.user
 *.filters
+.vs
 
 # Build systems
 Makefile
+*.make
+
+# Other misc files
+imgui.ini

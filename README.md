@@ -22,8 +22,12 @@ Currently, Uphonic supports building on **Windows** via simple batch scripts:
 generate.bat
 build.bat
 ```
-Linux support is planned and will be available in an upcoming commit.
-macOS support is also planned, but is expected to take longer due to limited access to testers on that platform.
+Also, Uphonic supports building on **Linux** (X11):
+```bash
+./tools/premake5 gmake
+make
+```
+macOS support is planned, but is expected to take longer due to limited access to testers on that platform.
 #### 📦 Dependencies and build instructions for other platforms will be added as the project evolves.
 
 
