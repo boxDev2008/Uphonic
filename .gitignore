@@ -1,0 +1,13 @@
+obj/
+bin/*.exe
+*.dll
+*.so
+*.dylib
+*.exp
+*.lib
+*.pdb
+*.sln
+*.vcxproj
+*.user
+*.filters
+Makefile

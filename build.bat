@@ -1,0 +1,1 @@
+MSBuild.exe Uphonic.sln -property:Configuration=Release
