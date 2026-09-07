@@ -1,3 +1,33 @@
+void uph_resources_add_track(Naui_String name)
+{
+    Uph_Track track = {
+        .name = naui_string_from_cstr("New Track"),
+        .color = naui_theme_color("uph_palette_color_1"),
+        .volume = 1.0f,
+        .index = naui_list_len(uph_state.project.tracks)
+    };
+    naui_list_push(uph_state.project.tracks, track);
+}
+
+void uph_resources_remove_track(Uph_Track *track)
+{
+    Naui_List(Uph_Track) list = track->parent ? track->parent->subtracks : uph_state.project.tracks;
+    uint32_t removed_index = track->index;
+
+    uph_unload_plugin_effect(&track->instrument);
+    naui_list_free(track->blocks);
+    naui_list_remove(list, removed_index);
+
+    for (uint32_t i = removed_index; i < (uint32_t)naui_list_len(list); i++)
+        list[i].index--;
+}
+
+void uph_resources_clear_tracks(void)
+{
+    // TODO: make this recursive
+	naui_list_clear(uph_state.project.tracks);
+}
+
 bool uph_resources_add_sample_from_file(Naui_Path path)
 {
     Uph_SampleData data = uph_audio_engine_load_sample_data(path);

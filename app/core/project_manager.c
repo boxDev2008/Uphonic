@@ -29,16 +29,11 @@ bool uph_project_create(Naui_String project_name)
 	uph_state.project.last_modified = current_time;
 	uph_state.project.title = project_name;
 	uph_state.project.time_signature = (Uph_TimeSignature){ .numerator = 4, .denominator = 4};
-	naui_list_clear(uph_state.project.tracks);
 	naui_list_clear(uph_state.project.midi_patterns);
 	naui_list_clear(uph_state.project.samples);
 
-	Uph_Track track = {
-		.name = naui_string_from_cstr(NAUI_TR("song_timeline.track.title")),
-		.volume = 1.0f,
-		.color = naui_theme_color("uph_palette_color_1")
-	};
-	naui_list_push(uph_state.project.tracks, track);
+	uph_resources_clear_tracks();
+	uph_resources_add_track(naui_string_from_cstr(NAUI_TR("song_timeline.track.title")));
 	uph_resources_add_pattern();
 	
 	uph_state.shared.selected_resource.index = 0;

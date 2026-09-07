@@ -204,6 +204,9 @@ struct Uph_Track
 	Naui_List(Uph_TimelineBlock) blocks;
 	Naui_List(Uph_Track) subtracks;
 
+	Uph_Track *parent;
+	uint32_t index;
+
 	float volume;
 	float pan;
 	float peak_left, peak_right;
