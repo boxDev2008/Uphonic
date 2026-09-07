@@ -1224,6 +1224,7 @@ static void uph_song_timeline_on_update(void)
     data->panel_hovered = naui_panel_hovered(naui_current_panel());
     data->tracks_hovered = leaf_hovered(track_section_id) && data->panel_hovered;
     data->hovered_block.active = false;
+    data->visual_row_counter = 0;
 
     if (naui_key_pressed(NAUI_KEY_SPACE) && !data->disable_space_to_play && data->panel_hovered)
         uph_state.shared.song_timeline_playing = !uph_state.shared.song_timeline_playing;
@@ -1248,7 +1249,10 @@ static void uph_song_timeline_on_update(void)
         })
         {
             for (uint32_t i = 0; i < (uint32_t)naui_list_len(uph_state.project.tracks); i++)
-                uph_song_timeline_render_track(&uph_state.project.tracks[i], track_options_context_menu);                    
+            {
+                uph_song_timeline_render_track(&uph_state.project.tracks[i], track_options_context_menu);
+                data->visual_row_counter++;
+            }
         }
         leaf({
             .positioning = LEAF_POSITIONING_FLOATING_TO_PARENT,
