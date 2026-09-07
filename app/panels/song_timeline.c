@@ -738,9 +738,8 @@ static void uph_song_timeline_render_track_timeline(Uph_Track *track)
     });
 }
 
-static void uph_song_timeline_solo_track(uint32_t track_index)
+static void uph_song_timeline_solo_track(Uph_Track *track)
 {
-    Uph_Track *track = &uph_state.project.tracks[track_index];
     track->state ^= UPH_TRACK_SOLOED;
 
     bool is_soloed = track->state & UPH_TRACK_SOLOED;
@@ -750,7 +749,7 @@ static void uph_song_timeline_solo_track(uint32_t track_index)
         for (uint32_t i = 0; i < (uint32_t)naui_list_len(uph_state.project.tracks); i++)
         {
             Uph_Track *t = &uph_state.project.tracks[i];
-            if (i == track_index)
+            if (t == track)
             {
                 t->state &= ~UPH_TRACK_SILENCED;
                 continue;
@@ -894,7 +893,7 @@ static void uph_song_timeline_render_track_header(Uph_Track *track, Uph_UIMenuID
                 if (uph_ui_text_toggle_button("M", leaf_id_indexed("uph_track_mute_toggle", track_id), track->state & UPH_TRACK_MUTED))
                     track->state ^= UPH_TRACK_MUTED;
                 if (uph_ui_text_toggle_button("S", leaf_id_indexed("uph_track_solo_toggle", track_id), track->state & UPH_TRACK_SOLOED))
-                    uph_song_timeline_solo_track(track_id);
+                    uph_song_timeline_solo_track(track);
 
                 if (uph_ui_image_toggle_button(
                     naui_asset_image("uph_icon_mic"),
